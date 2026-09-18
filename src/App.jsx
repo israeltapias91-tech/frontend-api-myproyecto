@@ -1,15 +1,10 @@
-import { useState } from 'react'
-import './App.css'
-
-import PrincipalView from './views/PrincipalView'
+import React from "react";
+import AppRouter from "./routers/AppRouter";
 
 function App() {
-
   return (
-    <>
-        <PrincipalView/>
-    </>
-  )
+    <AppRouter />
+  );
 }
 
-export default App
+export default App;
