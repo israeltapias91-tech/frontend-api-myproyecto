@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import {
   Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Typography, Button, TextField, Stack, CssBaseline
+  Typography, Button, TextField, Stack, CssBaseline, MenuItem
 } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
@@ -33,8 +33,18 @@ const ListaAprendices = () => {
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ nombre: "", apellido: "", email: "", telefono: "", direccion: "" });
+  const [form, setForm] = useState({ nombre: "", apellido: "", email: "", telefono: "", direccion: "", fechaNacimiento: "", programaFormacion: "", estado: "", genero: "", documento: "" });
   const [idFiltro, setIdFiltro] = useState("");
+
+
+  const prepararDatosParaEnvio = () => {
+  return {
+    ...form,
+    fechaNacimiento: form.fechaNacimiento === "" ? null : form.fechaNacimiento,
+    estado: form.estado === "" ? null : form.estado,
+    genero: form.genero === "" ? null : form.genero
+   };
+  };
 
   const fetchTodos = async () => {
     try {
@@ -98,19 +108,34 @@ const ListaAprendices = () => {
         </Stack>
 
         {/* Formulario creación */}
-        <Paper elevation={4} sx={{ p: 2, mb: 3, border: "1px solid #334155", bgcolor: "background.paper" }}>
-          <Typography sx={{ mb: 2, fontWeight: 600, color: "text.primary" }}>Crear aprendiz</Typography>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={2}>
-            <TextField label="Nombre" value={form.nombre}
-              onChange={(e) => setForm({ ...form, nombre: e.target.value })} sx={{ ...inputSX, flex: 1 }} />
-            <TextField label="Apellido" value={form.apellido}
-              onChange={(e) => setForm({ ...form, apellido: e.target.value })} sx={{ ...inputSX, flex: 1 }} />
-            <TextField label="Email" value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })} sx={{ ...inputSX, flex: 1.2 }} />
-            <TextField label="Teléfono" value={form.telefono}
-              onChange={(e) => setForm({ ...form, telefono: e.target.value })} sx={{ ...inputSX, flex: 1 }} />
-            <TextField label="Dirección" value={form.direccion}
-              onChange={(e) => setForm({ ...form, direccion: e.target.value })} sx={{ ...inputSX, flex: 1.6 }} />
+      <Paper elevation={4} sx={{ p: 2, mb: 3, border: "1px solid #334155", bgcolor: "background.paper" }}>
+       <Typography sx={{ mb: 2, fontWeight: 600, color: "text.primary" }}>
+            Crear nuevo aprendiz
+          </Typography>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={2} useFlexGap flexWrap="wrap">
+            <TextField label="Nombre" value={form.nombre} onChange={(e) => setForm({ ...form, nombre: e.target.value })} sx={{ ...inputSX, flex: "1 1 200px" }} />
+            <TextField label="Apellido" value={form.apellido} onChange={(e) => setForm({ ...form, apellido: e.target.value })} sx={{ ...inputSX, flex: "1 1 200px" }} />
+            <TextField label="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} sx={{ ...inputSX, flex: "1 1 200px" }} />
+            <TextField label="Teléfono" value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} sx={{ ...inputSX, flex: "1 1 200px" }} />
+            <TextField label="Dirección" value={form.direccion} onChange={(e) => setForm({ ...form, direccion: e.target.value })} sx={{ ...inputSX, flex: "1 1 200px" }} />
+            
+            {/* PASO 3: Agregamos los 5 Inputs visuales al formulario. Usamos type="date" para el calendario y "select" para forzar opciones fijas en los enums. */}
+            <TextField label="Fecha Nacimiento" type="date" value={form.fechaNacimiento || ""} InputLabelProps={{ shrink: true }} onChange={(e) => setForm({ ...form, fechaNacimiento: e.target.value })} sx={{ ...inputSX, flex: "1 1 200px" }} />
+            <TextField label="Programa Formación" value={form.programaFormacion} onChange={(e) => setForm({ ...form, programaFormacion: e.target.value })} sx={{ ...inputSX, flex: "1 1 200px" }} />
+            
+            <TextField select label="Estado" value={form.estado} onChange={(e) => setForm({ ...form, estado: e.target.value })} sx={{ ...inputSX, flex: "1 1 200px" }}>
+              <MenuItem value="ACTIVO">Activo</MenuItem>
+              <MenuItem value="INACTIVO">Inactivo</MenuItem>
+            </TextField>
+            
+            <TextField select label="Género" value={form.genero} onChange={(e) => setForm({ ...form, genero: e.target.value })} sx={{ ...inputSX, flex: "1 1 200px" }}>
+              <MenuItem value="MASCULINO">Masculino</MenuItem>
+              <MenuItem value="FEMENINO">Femenino</MenuItem>
+            </TextField>
+
+            <TextField label="Documento" value={form.documento} onChange={(e) => setForm({ ...form, documento: e.target.value })} sx={{ ...inputSX, flex: "1 1 200px" }} />
+          </Stack>
+          <Stack direction="row" justifyContent="flex-end" spacing={2} sx={{ mt: 2 }}>
             <Button variant="contained" color="primary" onClick={crearAprendiz} disabled={loading}>
               CREAR
             </Button>
@@ -122,7 +147,7 @@ const ListaAprendices = () => {
           <Table>
             <TableHead>
               <TableRow sx={{ background: "#22d3ee" }}>
-                {["ID","Nombre","Apellido","Email","Teléfono","Dirección"].map((h) => (
+                {["ID","Nombre","Apellido","Email","Teléfono","Dirección","Fecha Nac.","Programa","Estado","Género","Documento"].map((h) => (
                   <TableCell key={h} sx={{ color: "#0b1220", fontWeight: 700 }}>{h}</TableCell>
                 ))}
               </TableRow>
@@ -142,6 +167,11 @@ const ListaAprendices = () => {
                   <TableCell sx={{ color: "text.primary" }}>{row.email}</TableCell>
                   <TableCell sx={{ color: "text.primary" }}>{row.telefono}</TableCell>
                   <TableCell sx={{ color: "text.primary" }}>{row.direccion}</TableCell>
+                  <TableCell sx={{ color: "text.primary" }}>{row.fechaNacimiento}</TableCell>
+                  <TableCell sx={{ color: "text.primary" }}>{row.programaFormacion}</TableCell>
+                  <TableCell sx={{ color: "text.primary" }}>{row.estado}</TableCell>
+                  <TableCell sx={{ color: "text.primary" }}>{row.genero}</TableCell>
+                  <TableCell sx={{ color: "text.primary" }}>{row.documento}</TableCell>
                 </TableRow>
               ))}
               {data.length === 0 && (
