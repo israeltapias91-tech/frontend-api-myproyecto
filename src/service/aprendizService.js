@@ -1,7 +1,7 @@
 import axios from "axios";
 
-//ruta base apuntando al servidor Flask
-const FLASK_BASE = "http://127.0.0.1:5000/api/v1";
+// Ruta base apuntando a Render (o variable de entorno en desarrollo local)
+const FLASK_BASE = import.meta.env.VITE_API_URL || "https://backend-api-aprendiz.onrender.com/api/v1";
 
 // Función auxiliar para elegir la URL según la base de datos seleccionada
 const getUrl = (dbType) => {
