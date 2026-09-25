@@ -1,17 +1,20 @@
-# Etapa 1: Compilación con Node
-FROM node:20-alpine AS build
+# Usar una imagen ligera de Node.js
+FROM node:18-alpine
+
+# Establecer el directorio de trabajo dentro del contenedor
 WORKDIR /app
+
+# Copiar solo los archivos de dependencias primero (optimiza la caché de Docker)
 COPY package*.json ./
+
+# Instalar dependencias
 RUN npm install
+
+# Copiar el resto del código del frontend
 COPY . .
-RUN npm run build
 
-# Etapa 2: Servidor web de producción
-FROM nginx:alpine
-# Copiamos nuestra configuración personalizada de Nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-# Copiamos los archivos de React
-COPY --from=build /app/dist /usr/share/nginx/html
+# Exponer el puerto de Vite
+EXPOSE 5173
 
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+# Comando para iniciar Vite permitiendo conexiones externas
+CMD ["npm", "run", "dev", "--", "--host"]

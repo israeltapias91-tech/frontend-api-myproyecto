@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Typography, Button, TextField, Stack, CssBaseline } from "@mui/material";
+import { Box, Typography, Button, TextField, Stack, CssBaseline, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { getAprendices, getAprendizById, createAprendiz, updateAprendiz, deleteAprendiz } from "../service/aprendizService";
 import FormularioAprendiz from "../componentes/FormularioAprendiz";
@@ -19,7 +19,10 @@ const theme = createTheme({
 const inputSX = {
   bgcolor: "#f3f4f6",       // fondo claro para inputs
   borderRadius: 1,
-  input: { color: "#111827" },
+  // Fuerza el color oscuro en los inputs de texto normales
+  "& .MuiInputBase-input": { color: "#111827" },
+  // Fuerza el color oscuro específicamente en los selectores (dropdowns)
+  "& .MuiSelect-select": { color: "#111827", fontWeight: "bold" },
   "& .MuiInputLabel-root": { color: "#374151" },
   "& .MuiOutlinedInput-notchedOutline": { borderColor: "#cbd5e1" },
   "&:hover .MuiOutlinedInput-notchedOutline": { borderColor: "#94a3b8" },
@@ -32,6 +35,9 @@ const ListaAprendices = () => {
   const [form, setForm] = useState({ nombre: "", apellido: "", email: "", telefono: "", direccion: "", fechaNacimiento: "", programaFormacion: "", estado: "", genero: "", documento: "" });
   const [idFiltro, setIdFiltro] = useState("");
   const [editId, setEditId] = useState(null);
+  
+  // NUEVO: Estado para controlar qué base de datos usar
+  const [dbType, setDbType] = useState("mysql");
 
   const limpiarFormulario = () => {
     setForm({ 
@@ -53,7 +59,7 @@ const ListaAprendices = () => {
   const fetchTodos = async () => {
     try {
       setLoading(true);
-      const datos = await getAprendices();
+      const datos = await getAprendices(dbType);
       setData(datos || []);
     } catch (e) {
       console.error("Error cargando aprendices:", e);
@@ -65,7 +71,7 @@ const ListaAprendices = () => {
     if (!idFiltro) return;
     try {
       setLoading(true);
-      const aprendiz = await getAprendizById(idFiltro);
+      const aprendiz = await getAprendizById(idFiltro, dbType);
       setData(aprendiz ? [aprendiz] : []);
     } catch { setData([]); } finally { setLoading(false); }
   };
@@ -73,7 +79,8 @@ const ListaAprendices = () => {
   const crearAprendiz = async () => {
     try {
       setLoading(true);
-      await createAprendiz(form);
+      const datosAEnviar = prepararDatosParaEnvio();
+      await createAprendiz(datosAEnviar, dbType);
       limpiarFormulario();
       await fetchTodos();
     } catch (e) { console.error("Error creando aprendiz:", e); }
@@ -84,7 +91,7 @@ const ListaAprendices = () => {
     if (!idFiltro) return;
     try { 
       setLoading(true); 
-      await deleteAprendiz(idFiltro); 
+      await deleteAprendiz(idFiltro, dbType); 
       await fetchTodos(); 
     } catch (e) { console.error("Error eliminando aprendiz:", e); }
     finally { setLoading(false); }
@@ -97,7 +104,7 @@ const ListaAprendices = () => {
     }
     try {
       setLoading(true);
-      const aprendiz = await getAprendizById(idFiltro);
+      const aprendiz = await getAprendizById(idFiltro, dbType);
       if (aprendiz) {
         setForm({
           nombre: aprendiz.nombre || "",
@@ -111,7 +118,8 @@ const ListaAprendices = () => {
           genero: aprendiz.genero || "",
           documento: aprendiz.documento || ""
         });
-        setEditId(aprendiz.id);
+        // IMPORTANTE: Mongo usa _id, MySQL usa id
+        setEditId(aprendiz.id || aprendiz._id);
       }
     } catch (e) { alert("No se encontró ningún aprendiz con ese ID."); } 
     finally { setLoading(false); }
@@ -121,7 +129,7 @@ const ListaAprendices = () => {
     try {
       setLoading(true);
       const datosAEnviar = prepararDatosParaEnvio();
-      await updateAprendiz(editId, datosAEnviar);
+      await updateAprendiz(editId, datosAEnviar, dbType);
       alert("¡Aprendiz actualizado correctamente!");
       limpiarFormulario();
       await fetchTodos();
@@ -133,11 +141,29 @@ const ListaAprendices = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ mt: 4, px: { xs: 2, md: 4 } }}>
+        
         {/* Barra superior de botones */}
         <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
           <Typography variant="h5" sx={{ flex: 1, fontWeight: 700, color: "text.primary" }}>
             Aprendices
           </Typography>
+
+          {/* NUEVO: Selector de Base de Datos */}
+          <FormControl size="small">
+            <Select
+              value={dbType}
+              onChange={(e) => {
+                setDbType(e.target.value);
+                setData([]); // Limpiamos la tabla al cambiar de DB
+                limpiarFormulario();
+              }}
+              sx={{ ...inputSX, width: 130, fontWeight: 'bold' }}
+            >
+              <MenuItem value="mysql">MySQL</MenuItem>
+              <MenuItem value="mongo">MongoDB</MenuItem>
+            </Select>
+          </FormControl>
+
           <Button variant="contained" color="primary" onClick={fetchTodos} disabled={loading}>
             {loading ? "Cargando..." : "VER TODOS"}
           </Button>
@@ -156,10 +182,6 @@ const ListaAprendices = () => {
           </Button>
         </Stack>
 
-        {/* 
-          ¡Aquí ocurre la magia! 
-          Enviamos las variables (props) a tus nuevos componentes 
-        */}
         <FormularioAprendiz 
           form={form} 
           setForm={setForm} 

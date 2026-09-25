@@ -1,32 +1,41 @@
 import axios from "axios";
 
-const API_BASE = "http://localhost:8080/api/v1/aprendiz";
+//ruta base apuntando al servidor Flask
+const FLASK_BASE = "http://127.0.0.1:5000/api/v1";
 
-export const getAprendices = async () => {
-  const response = await axios.get(API_BASE);
+// Función auxiliar para elegir la URL según la base de datos seleccionada
+const getUrl = (dbType) => {
+  return dbType === "mongo" 
+    ? `${FLASK_BASE}/mongo/aprendices` 
+    : `${FLASK_BASE}/aprendices`;
+};
+
+// Por defecto usará MySQL ('mysql'), pero si le cambio 'mongo' cambiará la automáticamente
+export const getAprendices = async (dbType = "mysql") => {
+  const response = await axios.get(getUrl(dbType));
   return response.data;
 };
 
-export const getAprendizById = async (id) => {
-  const response = await axios.get(`${API_BASE}/${id}`);
+export const getAprendizById = async (id, dbType = "mysql") => {
+  const response = await axios.get(`${getUrl(dbType)}/${id}`);
   return response.data;
 };
 
-export const createAprendiz = async (datos) => {
-  const response = await axios.post(API_BASE, datos, { 
+export const createAprendiz = async (datos, dbType = "mysql") => {
+  const response = await axios.post(getUrl(dbType), datos, { 
     headers: { "Content-Type": "application/json" } 
   });
   return response.data;
 };
 
-export const updateAprendiz = async (id, datos) => {
-  const response = await axios.put(`${API_BASE}/${id}`, datos, { 
+export const updateAprendiz = async (id, datos, dbType = "mysql") => {
+  const response = await axios.put(`${getUrl(dbType)}/${id}`, datos, { 
     headers: { "Content-Type": "application/json" } 
   });
   return response.data;
 };
 
-export const deleteAprendiz = async (id) => {
-  const response = await axios.delete(`${API_BASE}/${id}`);
+export const deleteAprendiz = async (id, dbType = "mysql") => {
+  const response = await axios.delete(`${getUrl(dbType)}/${id}`);
   return response.data;
 };
