@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Box, Typography, Button, TextField, Stack, CssBaseline, MenuItem, Select, FormControl, InputLabel } from "@mui/material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { getAprendices, getAprendizById, createAprendiz, updateAprendiz, deleteAprendiz } from "../service/aprendizService";
-import FormularioAprendiz from "../componentes/FormularioAprendiz";
-import TablaAprendices from "../componentes/TablaAprendices";
+import FormularioAprendiz from "../componente/FormularioAprendiz";
+import TablaAprendices from "../componente/TablaAprendices";
 
 const theme = createTheme({
   palette: {
